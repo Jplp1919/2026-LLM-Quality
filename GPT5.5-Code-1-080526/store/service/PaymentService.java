@@ -1,0 +1,32 @@
+package store.service;
+
+import store.model.cashflow.CashflowEntry;
+import store.model.cashflow.CashflowType;
+import store.model.order.Order;
+import store.model.order.OrderStatus;
+import store.model.payment.Payment;
+import store.repository.DataStore;
+
+public class PaymentService {
+
+    private DataStore dataStore;
+
+    public PaymentService(DataStore dataStore) {
+        this.dataStore = dataStore;
+    }
+
+    public void payOrder(Order order, Payment payment) {
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new IllegalArgumentException("Cancelled order");
+        }
+
+        order.markPaid();
+
+        dataStore.getCashflowEntries().add(
+                new CashflowEntry(
+                        payment.getId(),
+                        CashflowType.INFLOW,
+                        payment.getAmount(),
+                        "Payment for " + order.getId()));
+    }
+}
